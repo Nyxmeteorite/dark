@@ -46,6 +46,7 @@ function AppShell() {
             <Route path="/search"   element={<PrivateRoute><Search /></PrivateRoute>} />
             <Route path="/jobs"     element={<PrivateRoute><Jobs /></PrivateRoute>} />
             <Route path="/profile"  element={<PrivateRoute><Profile /></PrivateRoute>} />
+            <Route path="/profile/:id" element={<PrivateRoute><Profile /></PrivateRoute>} />
             <Route path="/resume"   element={<PrivateRoute><Resume /></PrivateRoute>} />
             <Route path="/messages" element={<PrivateRoute><Messages /></PrivateRoute>} />
             <Route path="*"         element={<Navigate to="/" replace />} />

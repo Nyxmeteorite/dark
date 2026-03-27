@@ -1,16 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { messageApi, profileApi } from '../lib/supabase';
-
-function Avatar({ profile, size = 'md' }) {
-  return (
-    <div className={`avatar avatar-${size}`}>
-      {profile?.avatar_url
-        ? <img src={profile.avatar_url} alt="" />
-        : (profile?.full_name?.[0] || '?')}
-    </div>
-  );
-}
+import Avatar from '../components/Avatar';
 
 function timeAgo(date) {
   const s = Math.floor((Date.now() - new Date(date)) / 1000);
@@ -60,7 +51,7 @@ function ConversationList({ conversations, activeId, onSelect, loading }) {
           onMouseLeave={e => { if (activeId !== conv.other_user_id) e.currentTarget.style.background = 'transparent'; }}
         >
           <div style={{ position: 'relative', flexShrink: 0 }}>
-            <Avatar profile={conv} size="md" />
+            <Avatar profile={conv} size="md" to={`/profile/${conv.other_user_id}`} />
             {conv.unread_count > 0 && (
               <span style={{
                 position: 'absolute', top: -2, right: -2,
@@ -109,9 +100,9 @@ function MessageThread({ activeUser, currentUser, onBack }) {
     messageApi.markRead(activeUser.other_user_id, currentUser.id);
 
     // Realtime subscription
-    const unsub = messageApi.subscribe(currentUser.id, async (payload) => {
+    const unsub = messageApi.subscribeToMessages(currentUser.id, async (payload) => {
       if (payload.new.sender_id !== activeUser.other_user_id) return;
-      const { data } = await messageApi.getThread(currentUser.id, activeUser.other_user_id);
+      const { data } = await messageApi.getMessages(currentUser.id, activeUser.other_user_id);
       setMessages(data || []);
       messageApi.markRead(activeUser.other_user_id, currentUser.id);
     });
@@ -128,7 +119,7 @@ function MessageThread({ activeUser, currentUser, onBack }) {
 
   const loadThread = async () => {
     setLoading(true);
-    const { data } = await messageApi.getThread(currentUser.id, activeUser.other_user_id);
+    const { data } = await messageApi.getMessages(currentUser.id, activeUser.other_user_id);
     setMessages(data || []);
     setLoading(false);
   };
@@ -166,7 +157,7 @@ function MessageThread({ activeUser, currentUser, onBack }) {
         <button onClick={onBack} className="btn btn-ghost btn-sm"
           style={{ padding: '5px 8px', display: 'none' }}
           id="back-btn">← Back</button>
-        <Avatar profile={activeUser} size="md" />
+        <Avatar profile={activeUser} size="md" to={`/profile/${activeUser.other_user_id}`} />
         <div>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15 }}>{activeUser.full_name}</div>
           <div style={{ fontSize: 11, color: 'var(--muted)' }}>@{activeUser.username}</div>
@@ -211,7 +202,7 @@ function MessageThread({ activeUser, currentUser, onBack }) {
                     }}>
                     {!isMine && !sameSender && (
                       <div style={{ width: 30, marginRight: 8, flexShrink: 0 }}>
-                        <Avatar profile={msg.sender} size="sm" />
+                        <Avatar profile={msg.sender} size="sm" to={`/profile/${msg.sender.id}`} />
                       </div>
                     )}
                     {!isMine && sameSender && <div style={{ width: 38 }} />}
@@ -316,7 +307,7 @@ function NewConversation({ currentUserId, onSelect }) {
               onMouseEnter={e => e.currentTarget.style.background = 'var(--dark2)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              <Avatar profile={person} size="sm" />
+              <Avatar profile={person} size="sm" to={`/profile/${person.id}`} />
               <div>
                 <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 500 }}>{person.full_name}</div>
                 <div style={{ fontSize: 11, color: 'var(--muted)' }}>@{person.username}</div>

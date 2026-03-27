@@ -1,22 +1,18 @@
 import { useState } from 'react';
 import { profileApi, jobApi, connectionApi } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import Avatar from '../components/Avatar';
 
-function Avatar({ profile, size = 'md' }) {
-  return (
-    <div className={`avatar avatar-${size}`}>
-      {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : (profile?.full_name?.[0] || '?')}
-    </div>
-  );
-}
-
-function PersonCard({ person, onConnect, connStatus }) {
+function PersonCard({ person, onConnect, connStatus, navigate }) {
   return (
     <div className="card card-hover animate-fadeUp" style={{ padding: 22, textAlign: 'center' }}>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-        <Avatar profile={person} size="lg" />
+        <div onClick={() => navigate('/profile/' + person.id)} style={{ cursor: 'pointer' }}>
+          <Avatar profile={person} size="lg" to={`/profile/${person.id}`} />
+        </div>
       </div>
-      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 18, marginBottom: 2 }}>{person.full_name}</div>
+      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 18, marginBottom: 2, cursor: 'pointer' }} onClick={() => navigate('/profile/' + person.id)}>{person.full_name}</div>
       <div style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6 }}>@{person.username}</div>
       {person.headline && (
         <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 12, lineHeight: 1.5 }}>{person.headline}</div>
@@ -37,6 +33,7 @@ function PersonCard({ person, onConnect, connStatus }) {
 
 export default function SearchPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [query, setQuery]     = useState('');
   const [tab, setTab]         = useState('people');
   const [results, setResults] = useState({ people: [], jobs: [] });
@@ -118,7 +115,7 @@ export default function SearchPage() {
               : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(190px,1fr))', gap: 14 }}>
                   {results.people.map((p, i) => (
                     <div key={p.id} style={{ animationDelay: `${i * 0.06}s` }}>
-                      <PersonCard person={p} onConnect={handleConnect} connStatus={connStatuses[p.id] || null} />
+                      <PersonCard person={p} onConnect={handleConnect} connStatus={connStatuses[p.id] || null} navigate={navigate} />
                     </div>
                   ))}
                 </div>

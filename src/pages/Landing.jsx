@@ -18,6 +18,8 @@ export default function LandingPage() {
   const [form, setForm] = useState({ email: '', password: '', fullName: '', username: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const logos = ['Google', 'Stripe', 'Figma', 'Vercel', 'Linear', 'Notion', 'GitHub', 'Atlassian'];
+
 
   const set = (key) => (e) => setForm(p => ({ ...p, [key]: e.target.value }));
 
@@ -47,7 +49,7 @@ export default function LandingPage() {
         borderBottom: '1px solid var(--border)',
         position: 'sticky', top: 0, zIndex: 50,
       }}>
-        <div className="navbar-logo">ProNet</div>
+        <div className="navbar-logo">Nexus</div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-secondary btn-sm" onClick={() => setMode('signin')}>Sign In</button>
           <button className="btn btn-primary btn-sm" onClick={() => setMode('signup')}>Join Free</button>
@@ -211,45 +213,49 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-
-        {/* Trusted by strip */}
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0,
-          borderTop: '1px solid var(--border)',
-          padding: '16px 60px',
-          display: 'flex', alignItems: 'center', gap: 48,
-          background: 'rgba(12,12,12,0.8)', backdropFilter: 'blur(10px)',
-        }}>
-          <span style={{ fontSize: 10, color: 'var(--muted2)', letterSpacing: '0.14em', whiteSpace: 'nowrap' }}>TRUSTED BY PROFESSIONALS AT</span>
-          {['Google', 'Stripe', 'Figma', 'Vercel', 'Linear'].map(c => (
-            <span key={c} style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 500, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>{c}</span>
-          ))}
-        </div>
       </section>
+       
+        {/* Trusted by strip */}
+      
+        <div className="landing-container">
+          {/* ... your hero section above ... */}
+
+          <div className="marquee-outer-container">
+           <div className="marquee-wrapper">
+             <div className="marquee-track">
+               {/* Tripled the logos to eliminate the blank space gap */}
+               {[...logos, ...logos, ...logos].map((logo, i) => (
+                <span key={i} className="marquee-item">
+                  {logo}
+                </span>
+                ))}
+              </div>
+           </div>
+         </div>
+
+           {/* ... your features section below ... */}
+        </div>
+      
+
+
 
       {/* ── FEATURES ── */}
-      <section style={{ padding: '80px 60px', background: 'var(--black2)' }}>
+      <section style={{ padding: '80px 20px', background: 'var(--black2)' }}>
         <div style={{ textAlign: 'center', marginBottom: 56 }}>
           <p style={{ fontSize: 11, color: 'var(--muted)', letterSpacing: '0.14em', marginBottom: 14 }}>OUR PILLARS</p>
           <h2 className="animate-fadeUp" style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(32px, 4vw, 52px)', fontWeight: 300, fontStyle: 'italic', letterSpacing: '-0.5px', maxWidth: 600, margin: '0 auto' }}>
             Architecting the future of<br /><em style={{ color: 'var(--text2)' }}>professional influence.</em>
           </h2>
         </div>
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
-          gap: 18, maxWidth: 1100, margin: '0 auto',
-        }}>
+        <div className="features-container">
           {FEATURES.map((f, i) => (
-            <div key={f.title} className="card card-hover animate-fadeUp"
-              style={{ padding: 28, animationDelay: `${i * 0.07}s` }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 8, marginBottom: 16,
-                background: 'var(--accent-soft)', border: '1px solid rgba(255,255,255,0.12)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 18, color: 'var(--accent)',
-              }}>{f.icon}</div>
-              <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, marginBottom: 8, fontWeight: 500 }}>{f.title}</h3>
-              <p style={{ fontSize: 13, color: 'var(--muted)', lineHeight: 1.7 }}>{f.desc}</p>
+            <div
+              key={f.title}
+              className="feature-glass"
+              style={{ '--r': `${(i - 2) * 8}` }}
+              data-text={f.title}
+            >
+              <span>{f.icon}</span>
             </div>
           ))}
         </div>
@@ -367,7 +373,7 @@ export default function LandingPage() {
         flexWrap: 'wrap', gap: 16,
       }}>
         <div>
-          <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 18, color: 'var(--white)', marginBottom: 4 }}>ProNet</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: 18, color: 'var(--white)', marginBottom: 4 }}>Nexus</div>
           <div style={{ fontSize: 12, color: 'var(--muted2)' }}>The premier destination for professional networking.</div>
         </div>
         <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap' }}>

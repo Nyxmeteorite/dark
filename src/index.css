@@ -434,3 +434,110 @@ h1,h2,h3,h4 { font-family: var(--font-display); font-weight: 500; }
   margin: 0 auto;
   padding: 20px;
 }
+
+.features-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.feature-glass {
+  position: relative;
+  width: 180px;
+  height: 200px;
+  background: linear-gradient(rgba(255,255,255,0.1), transparent);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 25px rgba(0, 0, 0, 0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: 0.5s;
+  border-radius: 10px;
+  margin: 0 -45px;
+  backdrop-filter: blur(10px);
+  transform: rotate(calc(var(--r) * 1deg));
+}
+
+.features-container:hover .feature-glass {
+  transform: rotate(0deg);
+  margin: 0 10px;
+}
+
+.feature-glass::before {
+  content: attr(data-text);
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  border-radius: 0 0 10px 10px;
+}
+
+.feature-glass span {
+  font-size: 2.5em;
+}
+
+.marquee-wrapper {
+  width: 100%;
+  overflow: hidden;
+  /* This creates the fade-out effect on the left and right edges */
+  mask-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 1) 15%,
+    rgba(0, 0, 0, 1) 85%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content; /* Vital: Allows the track to be wider than the screen */
+  flex-wrap: nowrap;
+  animation: scroll-marquee 20s linear infinite;
+}
+
+.marquee-item {
+  flex-shrink: 0; /* Vital: Prevents names from squishing */
+  padding: 0 40px;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.marquee-wrapper:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* Update ONLY this part in your index.css */
+@keyframes scroll-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* Since we have 3 sets of logos, moving by 1/3 makes it seamless */
+    transform: translateX(-33.333%);
+  }
+}
+
+/* Ensure the outer container has the styling you had before */
+.marquee-outer-container {
+  position: relative;
+  border-top: 1px solid var(--border);
+  padding: 24px 0;
+  background: rgba(12, 12, 12, 0.8);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+}

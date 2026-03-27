@@ -79,7 +79,7 @@ export const postApi = {
 
   getComments: (postId) =>
     supabase.from('comments')
-      .select('*, profiles(full_name, username, avatar_url)')
+      .select('*, profiles(id, full_name, username, avatar_url)')
       .eq('post_id', postId)
       .order('created_at', { ascending: true }),
 
@@ -149,7 +149,7 @@ export const jobApi = {
 export const connectionApi = {
   getByUser: (userId) =>
     supabase.from('connections')
-      .select('*, requester:requester_id(full_name, username, headline, avatar_url), addressee:addressee_id(full_name, username, headline, avatar_url)')
+      .select('*, requester:requester_id(id, full_name, username, headline, avatar_url), addressee:addressee_id(id, full_name, username, headline, avatar_url)')
       .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`)
       .eq('status', 'accepted'),
 
@@ -168,15 +168,11 @@ export const connectionApi = {
       .single();
     return data?.status || null;
   },
-  getPending: async (userId) => {
-  const { data } = await supabase
-    .from('connections')
-    .select('*')
-    .eq('addressee_id', userId)
-    .eq('status', 'pending');
-
-  return data;
-},
+  getPending: (userId) =>
+    supabase.from('connections')
+      .select('*, requester:requester_id(id, full_name, username, headline, avatar_url)')
+      .eq('addressee_id', userId)
+      .eq('status', 'pending'),
 };
 
 // ─── RESUMES ─────────────────────────────────────────────────

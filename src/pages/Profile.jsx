@@ -1,22 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { profileApi, postApi, connectionApi } from '../lib/supabase';
-
-function Avatar({ profile, size = 'xl' }) {
-  return (
-    <div className={`avatar avatar-${size}`} style={{ border: '2px solid var(--border2)', boxShadow: '0 0 20px rgba(255,255,255,0.10)' }}>
-      {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : (profile?.full_name?.[0] || '?')}
-    </div>
-  );
-}
-
-function AvatarSmall({ profile, size = 'md' }) {
-  return (
-    <div className={`avatar avatar-${size}`}>
-      {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : (profile?.full_name?.[0] || '?')}
-    </div>
-  );
-}
+import { profileApi, postApi, connectionApi, supabase } from '../lib/supabase';
+import { useNavigate, useParams } from 'react-router-dom';
+import Avatar from '../components/Avatar';
 
 function EditModal({ profile, onSave, onClose }) {
   const [form, setForm] = useState({
@@ -69,8 +55,9 @@ function EditModal({ profile, onSave, onClose }) {
   );
 }
 
-export default function ProfilePage({ targetUserId, setPage }) {
+export default function ProfilePage() {
   const { user, profile: myProfile, refreshProfile } = useAuth();
+  const { id: urlId } = useParams();
   const [profile, setProfile]           = useState(null);
   const [posts, setPosts]               = useState([]);
   const [connections, setConnections]   = useState([]);
@@ -81,11 +68,41 @@ export default function ProfilePage({ targetUserId, setPage }) {
   const [connStatus, setConnStatus]     = useState(null);
   const [connecting, setConnecting]     = useState(false);
   const [acceptingId, setAcceptingId]   = useState(null);
-
-  const viewId = targetUserId || user?.id;
+  const navigate = useNavigate();
+  const viewId = urlId || user?.id;
   const isOwn  = viewId === user?.id;
 
   useEffect(() => { if (viewId) load(); }, [viewId]);
+
+  useEffect(() => {
+    if (!isOwn || !viewId) return;
+
+    const channel = supabase.channel('pending-requests')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'connections',
+        filter: `addressee_id=eq.${viewId}`
+      }, async (payload) => {
+        const { data: requester } = await profileApi.getById(payload.new.requester_id);
+        if (requester) {
+          setPendingReqs(prev => [...prev, { ...payload.new, requester }]);
+        }
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'connections',
+        filter: `addressee_id=eq.${viewId}`
+      }, (payload) => {
+        if (payload.new.status === 'accepted') {
+          setPendingReqs(prev => prev.filter(r => r.id !== payload.new.id));
+        }
+      })
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [viewId, isOwn]);
 
   const load = async () => {
     setLoading(true);
@@ -166,9 +183,9 @@ export default function ProfilePage({ targetUserId, setPage }) {
       </div>
 
       {/* Profile header */}
-      <div className="card" style={{ padding: 22, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTop: 'none' }}>
+      <div className="card" style={{ padding: 22, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTop: 'none', overflow: 'visible' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div style={{ marginTop: -44 }}>
+          <div style={{ marginTop: -54, marginLeft: 16, position: 'relative', zIndex: 10 }}>
             <Avatar profile={profile} />
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
@@ -288,7 +305,7 @@ export default function ProfilePage({ targetUserId, setPage }) {
                   return (
                     <div key={conn.id} className="card animate-fadeUp"
                       style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, animationDelay: `${i * 0.05}s` }}>
-                      <AvatarSmall profile={other} size="md" />
+                      <Avatar profile={other} size="md" to={`/profile/${other.id}`} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15 }}>{other.full_name}</div>
                         <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 1 }}>@{other.username}</div>
@@ -296,9 +313,9 @@ export default function ProfilePage({ targetUserId, setPage }) {
                           <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{other.headline}</div>
                         )}
                       </div>
-                      {isOwn && setPage && (
+                      {isOwn && (
                         <button className="btn btn-secondary btn-sm"
-                          onClick={() => setPage('messages')}
+                          onClick={() => navigate('/messages')}
                           style={{ flexShrink: 0 }}>
                           Message
                         </button>
@@ -322,7 +339,7 @@ export default function ProfilePage({ targetUserId, setPage }) {
                   return (
                     <div key={req.id} className="card animate-fadeUp"
                       style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, animationDelay: `${i * 0.05}s` }}>
-                      <AvatarSmall profile={requester} size="md" />
+                      <Avatar profile={requester} size="md" to={`/profile/${requester.id}`} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 15 }}>{requester.full_name}</div>
                         <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 1 }}>@{requester.username}</div>

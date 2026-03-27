@@ -1,14 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { postApi, profileApi } from '../lib/supabase';
-
-function Avatar({ profile, size = 'md' }) {
-  return (
-    <div className={`avatar avatar-${size}`}>
-      {profile?.avatar_url ? <img src={profile.avatar_url} alt="" /> : (profile?.full_name?.[0] || '?')}
-    </div>
-  );
-}
+import { useNavigate } from 'react-router-dom';
+import Avatar from '../components/Avatar';
 
 function timeAgo(date) {
   const s = Math.floor((Date.now() - new Date(date)) / 1000);
@@ -19,7 +13,7 @@ function timeAgo(date) {
 }
 
 // ── POST CARD ────────────────────────────────────────────────
-function PostCard({ post, currentUserId, isLiked, onLike, onDelete, isNew }) {
+function PostCard({ post, currentUserId, isLiked, onLike, onDelete, isNew, navigate }) {
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments]         = useState([]);
   const [commentText, setCommentText]   = useState('');
@@ -84,9 +78,11 @@ function PostCard({ post, currentUserId, isLiked, onLike, onDelete, isNew }) {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <Avatar profile={{ full_name: post.full_name, avatar_url: post.avatar_url }} />
+          <div onClick={() => navigate('/profile/' + post.user_id)} style={{ cursor: 'pointer' }}>
+            <Avatar profile={{ full_name: post.full_name, avatar_url: post.avatar_url }} />
+          </div>
           <div>
-            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16 }}>{post.full_name}</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, cursor: 'pointer' }} onClick={() => navigate('/profile/' + post.user_id)}>{post.full_name}</div>
             {post.headline && <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 1 }}>{post.headline}</div>}
             <div style={{ fontSize: 11, color: 'var(--muted2)', marginTop: 1 }}>{timeAgo(post.created_at)}</div>
           </div>
@@ -146,7 +142,7 @@ function PostCard({ post, currentUserId, isLiked, onLike, onDelete, isNew }) {
             : comments.map((c, i) => (
               <div key={c.id} style={{ display: 'flex', gap: 8, marginBottom: 10, animationDelay: `${i * 0.05}s` }}
                 className="animate-fadeIn">
-                <Avatar profile={c.profiles} size="sm" />
+                <Avatar profile={c.profiles} size="sm" to={`/profile/${c.profiles?.id}`} />
                 <div style={{ background: 'var(--dark)', borderRadius: 8, padding: '8px 12px', flex: 1, border: '1px solid var(--border)' }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>{c.profiles?.full_name}</div>
                   <div style={{ fontSize: 13, color: 'var(--text2)', marginTop: 2 }}>{c.content}</div>
@@ -214,6 +210,7 @@ function CreatePost({ profile, onPost }) {
 // ── FEED PAGE ────────────────────────────────────────────────
 export default function FeedPage() {
   const { profile, user } = useAuth();
+  const navigate = useNavigate();
   const [posts, setPosts]         = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
   const [newPostIds, setNewPostIds] = useState(new Set());
@@ -312,6 +309,7 @@ export default function FeedPage() {
                   isNew={newPostIds.has(post.id)}
                   onLike={() => {}}
                   onDelete={handleDelete}
+                  navigate={navigate}
                 />
               </div>
             ))

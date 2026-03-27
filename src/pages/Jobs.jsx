@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { jobApi } from '../lib/supabase';
+import { jobApi, profileApi } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import Avatar from '../components/Avatar';
 
 const JOB_TYPES = ['all', 'full-time', 'part-time', 'remote', 'contract', 'internship'];
 
@@ -58,7 +60,7 @@ function JobCard({ job, active, onClick, isNew }) {
   );
 }
 
-function JobDetail({ job, onApply, applying, applied }) {
+function JobDetail({ job, onApply, applying, applied, poster, navigate }) {
   return (
     <div className="card animate-scaleIn" style={{ padding: 26, position: 'sticky', top: 80 }}>
       {/* Warm light top */}
@@ -76,6 +78,18 @@ function JobDetail({ job, onApply, applying, applied }) {
           <div style={{ color: 'var(--text2)', fontSize: 14, marginTop: 2 }}>{job.company}</div>
         </div>
       </div>
+
+      {poster && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, padding: '10px 14px', background: 'var(--dark2)', borderRadius: 8, border: '1px solid var(--border)' }}>
+          <div onClick={() => navigate('/profile/' + job.poster_id)} style={{ cursor: 'pointer' }}>
+            <Avatar profile={poster} size="sm" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Posted by</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 500, cursor: 'pointer' }} onClick={() => navigate('/profile/' + job.poster_id)}>{poster.full_name}</div>
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
         <span className="tag">{job.job_type}</span>
@@ -188,8 +202,10 @@ function PostJobModal({ onClose, onPosted, userId }) {
 // ── JOBS PAGE ────────────────────────────────────────────────
 export default function JobsPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [jobs, setJobs]               = useState([]);
   const [selected, setSelected]       = useState(null);
+  const [poster, setPoster]           = useState(null);
   const [filter, setFilter]           = useState('all');
   const [search, setSearch]           = useState('');
   const [loading, setLoading]         = useState(true);
@@ -202,6 +218,14 @@ export default function JobsPage() {
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   useEffect(() => { loadJobs(); }, [filter]);
+
+  useEffect(() => {
+    if (selected?.poster_id) {
+      profileApi.getById(selected.poster_id).then(({ data }) => setPoster(data));
+    } else {
+      setPoster(null);
+    }
+  }, [selected?.id]);
 
   useEffect(() => {
     if (user) {
@@ -293,7 +317,7 @@ export default function JobsPage() {
         </div>
         <div>
           {selected ? (
-            <JobDetail job={selected} onApply={handleApply} applying={applying} applied={applied.includes(selected?.id)} />
+            <JobDetail job={selected} onApply={handleApply} applying={applying} applied={applied.includes(selected?.id)} poster={poster} navigate={navigate} />
           ) : (
             <div className="empty-state card" style={{ padding: 40 }}>
               <div style={{ fontSize: 32, marginBottom: 10, color: 'var(--muted)' }}>◇</div>

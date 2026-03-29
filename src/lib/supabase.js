@@ -215,11 +215,46 @@ export const resumeApi = {
 
 // ─── MESSAGES ────────────────────────────────────────────────
 export const messageApi = {
-  getConversations: (userId) =>
-    supabase.from('messages')
+  getConversations: async (userId) => {
+    const { data, error } = await supabase
+      .from('messages')
       .select('*, sender:sender_id(id, full_name, username, avatar_url), receiver:receiver_id(id, full_name, username, avatar_url)')
       .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
-      .order('created_at', { ascending: false }),
+      .order('created_at', { ascending: false });
+
+    if (!data) return { data: [], error };
+
+    // Group by conversation partner
+    const map = new Map();
+    for (const msg of data) {
+      const otherId = msg.sender_id === userId ? msg.receiver_id : msg.sender_id;
+      const other = msg.sender_id === userId ? msg.receiver : msg.sender;
+      if (!map.has(otherId)) {
+        map.set(otherId, {
+          other_user_id: otherId,
+          full_name: other?.full_name,
+          username: other?.username,
+          avatar_url: other?.avatar_url,
+          last_message: msg.content,
+          last_message_at: msg.created_at,
+          unread_count: (!msg.read && msg.receiver_id === userId) ? 1 : 0,
+        });
+      } else {
+        const conv = map.get(otherId);
+        if (!msg.read && msg.receiver_id === userId) conv.unread_count++;
+      }
+    }
+    return { data: Array.from(map.values()), error: null };
+  },
+
+  getUnreadCount: async (userId) => {
+    const { count } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('receiver_id', userId)
+      .eq('read', false);
+    return count || 0;
+  },
 
   getMessages: (userId, otherUserId) =>
     supabase.from('messages')

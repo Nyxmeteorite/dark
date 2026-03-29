@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { jobApi, profileApi } from '../lib/supabase';
+import { jobApi, profileApi, resumeApi } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Avatar from '../components/Avatar';
@@ -129,17 +129,34 @@ function JobCard({ job, active, onClick, isNew, applicationStatus }) {
 function ApplyModal({ job, user, onClose, onApplied }) {
   const [form, setForm] = useState({ name: '', email: user?.email || '', cover_letter: '' });
   const [loading, setLoading] = useState(false);
+  const [storedResume, setStoredResume] = useState(null);
+  const [useStoredResume, setUseStoredResume] = useState(true);
+  const [newResumeFile, setNewResumeFile] = useState(null);
   const set = key => e => setForm(p => ({ ...p, [key]: e.target.value }));
+
+  useEffect(() => {
+    if (!user?.id) return;
+    resumeApi.get(user.id).then(({ data }) => {
+      setStoredResume(data);
+      setUseStoredResume(!!data);
+    });
+  }, [user?.id]);
 
   const handleSubmit = async () => {
     if (!form.name || !form.email) return;
     setLoading(true);
+    let resumeUrl = storedResume?.resume_url || null;
+    if (!useStoredResume && newResumeFile) {
+      const { data: uploaded } = await resumeApi.uploadFile(user.id, newResumeFile);
+      resumeUrl = uploaded?.data || null;
+    }
     const { error } = await jobApi.applyWithDetails({
       job_id: job.id,
       user_id: user.id,
       applicant_name: form.name,
       applicant_email: form.email,
       cover_letter: form.cover_letter,
+      resume_url: resumeUrl,
       status: 'applied',
     });
     setLoading(false);
@@ -167,6 +184,43 @@ function ApplyModal({ job, user, onClose, onApplied }) {
         <div className="form-group">
           <label className="label">Cover Letter <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(optional)</span></label>
           <textarea className="input" placeholder="Tell the recruiter why you're a great fit…" value={form.cover_letter} onChange={set('cover_letter')} style={{ minHeight: 120, resize: 'vertical' }} />
+        </div>
+
+        {/* Resume section */}
+        <div className="form-group">
+          <label className="label">Resume</label>
+          {storedResume ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <input type="checkbox" id="use-stored-resume" checked={useStoredResume}
+                  onChange={() => { setUseStoredResume(v => !v); setNewResumeFile(null); }}
+                  style={{ accentColor: 'var(--accent)', width: 16, height: 16 }} />
+                <label htmlFor="use-stored-resume" style={{ fontSize: 13, color: 'var(--text2)', cursor: 'pointer' }}>
+                  Use my saved resume
+                  {storedResume.resume_url && (
+                    <span style={{ color: 'var(--muted)', fontSize: 12, marginLeft: 6 }}>
+                      — <a href={storedResume.resume_url} target="_blank" rel="noreferrer" style={{ color: 'var(--accent)' }}>view</a>
+                    </span>
+                  )}
+                </label>
+              </div>
+              {!useStoredResume && (
+                <label style={{ fontSize: 13, color: 'var(--text2)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ color: 'var(--muted)' }}>Upload different file:</span>
+                  <input type="file" accept=".pdf"
+                    onChange={e => setNewResumeFile(e.target.files[0] || null)}
+                    style={{ fontSize: 12 }} />
+                </label>
+              )}
+            </div>
+          ) : (
+            <label style={{ fontSize: 13, color: 'var(--text2)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ color: 'var(--muted)' }}>Attach Resume (PDF):</span>
+              <input type="file" accept=".pdf"
+                onChange={e => setNewResumeFile(e.target.files[0] || null)}
+                style={{ fontSize: 12 }} />
+            </label>
+          )}
         </div>
 
         <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>

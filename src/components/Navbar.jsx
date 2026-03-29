@@ -1,12 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { messageApi, supabase } from '../lib/supabase';
 
 export default function Navbar() {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [menu, setMenu] = useState(false);
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    messageApi.getUnreadCount(user.id).then(setUnread);
+    const channel = supabase.channel(`navbar-unread-${user.id}`)
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'messages',
+        filter: `receiver_id=eq.${user.id}`
+      }, () => messageApi.getUnreadCount(user.id).then(setUnread))
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'messages',
+        filter: `receiver_id=eq.${user.id}`
+      }, () => messageApi.getUnreadCount(user.id).then(setUnread))
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [user?.id]);
 
   const nav = [
     { id: '/feed',     label: 'Feed' },
@@ -38,6 +56,14 @@ export default function Navbar() {
                 <div style={{
                   position: 'absolute', bottom: 0, left: '20%', right: '20%', height: 1,
                   background: 'var(--accent)', borderRadius: 1,
+                }} />
+              )}
+              {item.id === '/messages' && unread > 0 && (
+                <span style={{
+                  position: 'absolute', top: 4, right: 4,
+                  width: 7, height: 7, borderRadius: '50%',
+                  background: '#f87171',
+                  border: '1.5px solid var(--black)',
                 }} />
               )}
             </button>

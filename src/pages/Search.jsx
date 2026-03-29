@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { profileApi, jobApi, connectionApi } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -40,6 +40,24 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [connStatuses, setConnStatuses] = useState({});
+  const [suggestions, setSuggestions] = useState({ people: [], jobs: [] });
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  useEffect(() => {
+    if (!query.trim() || query.length < 2) { setShowSuggestions(false); return; }
+    const t = setTimeout(async () => {
+      const [{ data: people }, { data: jobs }] = await Promise.all([
+        profileApi.search(query),
+        jobApi.getAll({ query, limit: 4 }),
+      ]);
+      setSuggestions({
+        people: (people || []).filter(p => p.id !== user?.id).slice(0, 3),
+        jobs: (jobs || []).slice(0, 3),
+      });
+      setShowSuggestions(true);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [query]);
 
   const handleSearch = async (e) => {
     e?.preventDefault();
@@ -77,11 +95,55 @@ export default function SearchPage() {
           <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontSize: 16, pointerEvents: 'none' }}>◎</div>
           <input className="input" placeholder="Search people, skills, companies…"
             value={query} onChange={e => setQuery(e.target.value)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
             style={{ paddingLeft: 42, height: 48, fontSize: 15 }} />
           <button type="submit" className="btn btn-primary btn-sm"
             style={{ position: 'absolute', right: 7, top: '50%', transform: 'translateY(-50%)', height: 34 }}>
             Search
           </button>
+          {showSuggestions && (suggestions.people.length || suggestions.jobs.length) && (
+            <div style={{
+              position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200,
+              background: 'var(--dark2)', border: '1px solid var(--border)',
+              borderRadius: 8, marginTop: 6, overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            }}>
+              {suggestions.people.length > 0 && (
+                <>
+                  <div style={{ padding: '8px 14px 4px', fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>People</div>
+                  {suggestions.people.map(p => (
+                    <button key={p.id} onClick={() => { navigate('/profile/' + p.id); setShowSuggestions(false); setQuery(''); }}
+                      style={{ width: '100%', display: 'flex', gap: 10, alignItems: 'center', padding: '8px 14px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--dark)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <Avatar profile={p} size="sm" />
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 500, fontFamily: 'var(--font-display)' }}>{p.full_name}</div>
+                        <div style={{ fontSize: 11, color: 'var(--muted)' }}>{p.headline || '@' + p.username}</div>
+                      </div>
+                    </button>
+                  ))}
+                </>
+              )}
+              {suggestions.jobs.length > 0 && (
+                <>
+                  <div style={{ padding: '8px 14px 4px', fontSize: 10, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Jobs</div>
+                  {suggestions.jobs.map(j => (
+                    <button key={j.id} onClick={() => { navigate('/jobs'); setShowSuggestions(false); setQuery(''); }}
+                      style={{ width: '100%', display: 'flex', gap: 10, alignItems: 'center', padding: '8px 14px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--dark)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <div style={{ width: 28, height: 28, borderRadius: 6, background: 'var(--dark)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontFamily: 'var(--font-display)', color: 'var(--text2)' }}>{j.company?.[0]}</div>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 500, fontFamily: 'var(--font-display)' }}>{j.title}</div>
+                        <div style={{ fontSize: 11, color: 'var(--muted)' }}>{j.company} · {j.job_type}</div>
+                      </div>
+                    </button>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
         </form>
       </div>
 

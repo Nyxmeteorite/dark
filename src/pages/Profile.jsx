@@ -172,7 +172,7 @@ export default function ProfilePage() {
       {/* Banner */}
       <div style={{
         height: 150, borderRadius: '10px 10px 0 0', overflow: 'hidden',
-        background: 'linear-gradient(135deg, #1a1a1a 0%, #222222 50%, #111111 100%)',
+        background: '#1a1a1a',
         position: 'relative',
       }}>
         {profile.banner_url && <img src={profile.banner_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
@@ -183,7 +183,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Profile header */}
-      <div className="card" style={{ padding: 22, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTop: 'none', overflow: 'visible' }}>
+      <div className="card" style={{ padding: 22, borderTopLeftRadius: 0, borderTopRightRadius: 0, borderTop: 'none', overflow: 'visible', position: 'relative' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{ marginTop: -54, marginLeft: 16, position: 'relative', zIndex: 10 }}>
             <Avatar profile={profile} />

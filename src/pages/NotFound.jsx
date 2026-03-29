@@ -5,7 +5,7 @@ export default function NotFound() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--black)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="card">
+      <div className="duck-card">
         <div className="orb orb--1"></div>
         <div className="orb orb--2"></div>
         <div className="orb orb--3"></div>

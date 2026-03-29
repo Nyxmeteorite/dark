@@ -9,6 +9,7 @@ import Jobs from './pages/Jobs';
 import Profile from './pages/Profile';
 import Resume from './pages/Resume';
 import Messages from './pages/Messages';
+import NotFound from './pages/NotFound';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -49,7 +50,7 @@ function AppShell() {
             <Route path="/profile/:id" element={<PrivateRoute><Profile /></PrivateRoute>} />
             <Route path="/resume"   element={<PrivateRoute><Resume /></PrivateRoute>} />
             <Route path="/messages" element={<PrivateRoute><Messages /></PrivateRoute>} />
-            <Route path="*"         element={<Navigate to="/" replace />} />
+            <Route path="*"         element={<NotFound />} />
           </Routes>
         </main>
       </div>

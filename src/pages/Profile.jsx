@@ -172,7 +172,7 @@ export default function ProfilePage() {
       {/* Banner */}
       <div style={{
         height: 150, borderRadius: '10px 10px 0 0', overflow: 'hidden',
-        background: 'linear-gradient(135deg, #100D06 0%, #1C1506 40%, #0D0B08 100%)',
+        background: 'linear-gradient(135deg, #1a1a1a 0%, #222222 50%, #111111 100%)',
         position: 'relative',
       }}>
         {profile.banner_url && <img src={profile.banner_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}

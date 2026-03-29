@@ -88,7 +88,6 @@ export const postApi = {
       .insert({ post_id: postId, user_id: userId, content })
       .select('*, profiles(full_name, username, avatar_url)').single(),
 
-  // ─── REALTIME SUBSCRIPTIONS ──────────────────────────────
   subscribeToFeed: (onInsert, onDelete) => {
     const channel = supabase.channel('public:posts')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, onInsert)
@@ -130,13 +129,31 @@ export const jobApi = {
 
   create: (data) => supabase.from('jobs').insert(data).select().single(),
 
+  // Legacy simple apply (kept for safety)
   apply: (jobId, userId) =>
     supabase.from('job_applications').insert({ job_id: jobId, user_id: userId }).select().single(),
 
-  getAppliedJobs: (userId) =>
-    supabase.from('job_applications').select('job_id').eq('user_id', userId),
+  // Apply with full applicant details
+  applyWithDetails: (payload) =>
+    supabase.from('job_applications').insert(payload).select().single(),
 
-  // ─── REALTIME ──────────────────────────────────────────────
+  // Returns job_id + status so pipeline tracker works
+  getAppliedJobs: (userId) =>
+    supabase.from('job_applications').select('job_id, status').eq('user_id', userId),
+
+  // Recruiter: fetch all applications for a job
+  getApplicationsForJob: (jobId) =>
+    supabase.from('job_applications')
+      .select('*')
+      .eq('job_id', jobId)
+      .order('created_at', { ascending: false }),
+
+  // Recruiter: update status + internal notes
+  updateApplicationStatus: (appId, status, recruiterNotes) =>
+    supabase.from('job_applications')
+      .update({ status, recruiter_notes: recruiterNotes })
+      .eq('id', appId),
+
   subscribeToJobs: (onInsert) => {
     const channel = supabase.channel('public:jobs')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'jobs' }, onInsert)
@@ -168,6 +185,7 @@ export const connectionApi = {
       .single();
     return data?.status || null;
   },
+
   getPending: (userId) =>
     supabase.from('connections')
       .select('*, requester:requester_id(id, full_name, username, headline, avatar_url)')

@@ -28,7 +28,7 @@ function EditModal({ profile, onSave, onClose }) {
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box" style={{ maxHeight: '88vh', overflowY: 'auto' }}>
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontStyle: 'italic', fontWeight: 400, marginBottom: 20 }}>Edit Profile</h2>
-        {[['full_name','Full Name'],['headline','Headline'],['location','Location'],['website','Website']].map(([k,l]) => (
+        {[['full_name','Full Name'],['headline','Profession'],['location','Location'],['website','Website']].map(([k,l]) => (
           <div key={k} className="form-group">
             <label className="label">{l}</label>
             <input className="input" value={form[k]} onChange={set(k)} />

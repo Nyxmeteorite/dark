@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 // ── RESUME API ────────────────────────────────────────────────
 const resumeApi = {
   get: (userId) =>
-    supabase.from('resumes').select('*').eq('user_id', userId).single(),
+    supabase.from('resumes').select('*').eq('user_id', userId).maybeSingle(),
 
   upsert: (userId, data) =>
     supabase.from('resumes').upsert({ user_id: userId, ...data, updated_at: new Date().toISOString() })

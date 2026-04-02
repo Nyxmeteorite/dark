@@ -66,6 +66,15 @@ export const postApi = {
       .insert({ user_id: userId, content, image_url: imageUrl })
       .select().single(),
 
+  uploadImage: async (userId, file) => {
+    const ext = file.name.split('.').pop();
+    const path = `${userId}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('post-images').upload(path, file, { upsert: true });
+    if (error) return { data: null, error };
+    const { data } = supabase.storage.from('post-images').getPublicUrl(path);
+    return { data: data.publicUrl, error: null };
+  },
+
   delete: (postId) => supabase.from('posts').delete().eq('id', postId),
 
   like: (postId, userId) =>
@@ -196,7 +205,7 @@ export const connectionApi = {
 // ─── RESUMES ─────────────────────────────────────────────────
 export const resumeApi = {
   get: (userId) =>
-    supabase.from('resumes').select('*').eq('user_id', userId).single(),
+    supabase.from('resumes').select('*').eq('user_id', userId).maybeSingle(),
 
   upsert: (userId, data) =>
     supabase.from('resumes')

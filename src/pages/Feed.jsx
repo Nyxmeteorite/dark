@@ -167,15 +167,40 @@ function CreatePost({ profile, onPost }) {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef = useRef(null);
 
   const handleSubmit = async () => {
     if (!content.trim()) return;
     setLoading(true);
-    await postApi.create({ userId: profile.id, content });
+    let imageUrl = null;
+    if (image) {
+      const { data, error: uploadError } = await postApi.uploadImage(profile.id, image);
+      if (uploadError) { setLoading(false); return; }
+      imageUrl = data;
+    }
+    await postApi.create({ userId: profile.id, content, imageUrl });
     setContent('');
+    setImage(null);
+    setImagePreview(null);
     setFocused(false);
     onPost?.();
     setLoading(false);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removeImage = () => {
+    setImage(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   return (
@@ -192,10 +217,18 @@ function CreatePost({ profile, onPost }) {
             style={{ minHeight: focused ? 100 : 44, resize: 'none', fontSize: 14, transition: 'min-height 0.25s ease' }}
             onKeyDown={e => { if (e.key === 'Enter' && e.metaKey) handleSubmit(); }}
           />
-          {(focused || content) && (
+          {imagePreview && (
+            <div style={{ position: 'relative', marginTop: 10 }}>
+              <img src={imagePreview} alt="Preview" style={{ borderRadius: 8, width: '100%', maxHeight: 200, objectFit: 'cover', border: '1px solid var(--border)' }} />
+              <button onClick={removeImage} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', color: '#fff', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+            </div>
+          )}
+          {(focused || content || image) && (
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}
               className="animate-fadeIn">
-              <button className="btn btn-secondary btn-sm" onClick={() => { setFocused(false); setContent(''); }}>Cancel</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => fileInputRef.current?.click()} style={{ fontSize: 16 }}>🖼</button>
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+              <button className="btn btn-secondary btn-sm" onClick={() => { setFocused(false); setContent(''); setImage(null); setImagePreview(null); }}>Cancel</button>
               <button className="btn btn-primary btn-sm" onClick={handleSubmit} disabled={!content.trim() || loading}>
                 {loading ? <div className="spinner" style={{ width: 12, height: 12 }} /> : 'Post'}
               </button>

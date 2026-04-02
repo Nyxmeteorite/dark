@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { messageApi, supabase } from '../lib/supabase';
 
 export default function Navbar() {
-  const { profile, signOut, user } = useAuth();
+  const { profile, signOut, user, theme, toggleTheme } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [menu, setMenu] = useState(false);
@@ -73,6 +73,10 @@ export default function Navbar() {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
         <span className="live-dot" title="Realtime connected" />
+        <button onClick={toggleTheme} className="btn btn-ghost btn-sm"
+          style={{ fontSize: 16, padding: '6px 10px' }}>
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
         <div style={{ position: 'relative' }}>
           <div className="avatar avatar-sm"
             onClick={() => setMenu(v => !v)}

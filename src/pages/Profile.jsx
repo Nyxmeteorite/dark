@@ -76,6 +76,25 @@ function PipelineTracker({ status }) {
 
 // ── EDIT MODAL ───────────────────────────────────────────────
 function EditModal({ profile, onSave, onClose }) {
+  const STYLES = ['notionists', 'notionists-neutral', 'lorelei', 'lorelei-neutral'];
+  const ALL_SEEDS = ['Navya', 'Aryan', 'Priya', 'Meera', 'Kiran', 'Rohan', 'Sneha', 'Vikram', 'Ananya', 'Pooja', 'Rahul', 'Kavya', 'Siddharth', 'Divya', 'Nikhil', 'Tanvi', 'Amit', 'Lakshmi', 'Gaurav', 'Nisha'];
+
+  // Pick 5 random seeds per style
+  const pick = (arr, n) => {
+    const shuffled = [...arr].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, n);
+  };
+
+  const avatarOptions = STYLES.flatMap(style =>
+    pick(ALL_SEEDS, 5).map(seed => ({
+      style,
+      seed,
+      url: `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`,
+    }))
+  );
+
+  const isDiceBear = (url) => url && url.includes('dicebear.com');
+
   const [form, setForm] = useState({
     full_name: profile.full_name || '',
     headline: profile.headline || '',
@@ -83,6 +102,7 @@ function EditModal({ profile, onSave, onClose }) {
     location: profile.location || '',
     website: profile.website || '',
     open_to_work: profile.open_to_work || false,
+    avatar_url: profile.avatar_url || '',
   });
   const [loading, setLoading] = useState(false);
   const set = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
@@ -95,10 +115,50 @@ function EditModal({ profile, onSave, onClose }) {
     onClose();
   };
 
+  const selectAvatar = (url) => {
+    setForm(p => ({ ...p, avatar_url: url }));
+  };
+
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal-box" style={{ maxHeight: '88vh', overflowY: 'auto' }}>
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontStyle: 'italic', fontWeight: 400, marginBottom: 20 }}>Edit Profile</h2>
+
+        <div className="label" style={{ marginBottom: 10 }}>Choose Avatar</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8, marginBottom: 20 }}>
+          {avatarOptions.map((opt) => {
+            const isSelected = form.avatar_url === opt.url;
+            return (
+              <div
+                key={opt.url}
+                onClick={() => selectAvatar(opt.url)}
+                style={{
+                  width: 52, height: 52, borderRadius: '50%',
+                  overflow: 'visible', position: 'relative', cursor: 'pointer',
+                  border: isSelected ? '2px solid #fff' : '2px solid var(--border)',
+                  transition: 'border-color 0.2s',
+                }}
+              >
+                <img
+                  src={opt.url}
+                  alt={opt.seed}
+                  style={{ width: 52, height: 52, borderRadius: '50%', display: 'block', border: '2px solid var(--black2)' }}
+                />
+                {isSelected && (
+                  <div style={{
+                    position: 'absolute', inset: -2, borderRadius: '50%',
+                    border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--accent)', color: 'var(--black)', fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                      ✓
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
         {[['full_name','Full Name'],['headline','Profession'],['location','Location'],['website','Website']].map(([k,l]) => (
           <div key={k} className="form-group">
             <label className="label">{l}</label>

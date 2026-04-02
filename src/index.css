@@ -45,6 +45,54 @@
   --shadow-soft:  0 4px 24px rgba(0,0,0,0.4);
 }
 
+[data-theme="light"] {
+  --black:        #EEEEEE;
+  --black2:       #E4E4E4;
+  --dark:         #D8D8D8;
+  --dark2:        #CECECE;
+  --mid:          #BBBBBB;
+  --mid2:         #AAAAAA;
+
+  /* Borders */
+  --border:       rgba(0,0,0,0.08);
+  --border2:      rgba(0,0,0,0.14);
+  --border3:      rgba(0,0,0,0.22);
+
+  /* Text */
+  --white:        #111111;
+  --text:         #111111;
+  --text2:        #444444;
+  --muted:        #777777;
+  --muted2:       #999999;
+
+  /* Accent */
+  --accent:       #111111;
+  --accent-soft:  rgba(0,0,0,0.05);
+  --accent-glow:  rgba(0,0,0,0.10);
+}
+
+[data-theme="light"] .navbar {
+  background: rgba(20,20,20,0.97);
+  border-bottom: 1px solid rgba(0,0,0,0.3);
+}
+
+[data-theme="light"] .navbar-logo {
+  color: #F5F5F5;
+}
+
+[data-theme="light"] .navbar .btn-ghost {
+  color: #CCCCCC;
+}
+
+[data-theme="light"] .navbar .btn-ghost:hover {
+  color: #FFFFFF;
+  background: rgba(255,255,255,0.1);
+}
+
+[data-theme="light"] .avatar {
+  border-color: rgba(0,0,0,0.15);
+}
+
 *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior: smooth; }
 body {

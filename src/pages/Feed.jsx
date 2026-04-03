@@ -64,7 +64,7 @@ function PostCard({ post, currentUserId, isLiked, onLike, onDelete, isNew, navig
 
   return (
     <div className={`card card-hover ${isNew ? 'animate-slideUp' : 'animate-fadeUp'}`}
-      style={{ padding: '20px', marginBottom: 12, position: 'relative', overflow: 'hidden' }}>
+      style={{ padding: '20px', marginBottom: 12, position: 'relative', overflow: 'visible' }}>
 
       {/* Warm light accent on new posts */}
       {isNew && (
@@ -98,7 +98,9 @@ function PostCard({ post, currentUserId, isLiked, onLike, onDelete, isNew, navig
       <p style={{ fontSize: 14, lineHeight: 1.75, color: 'var(--text)', marginBottom: 14 }}>{post.content}</p>
 
       {post.image_url && (
-        <img src={post.image_url} alt="" style={{ borderRadius: 8, marginBottom: 14, width: '100%', objectFit: 'cover', maxHeight: 280, border: '1px solid var(--border)' }} />
+        <div style={{ background: 'var(--dark)', borderRadius: 8, marginBottom: 14, border: '1px solid var(--border)', overflow: 'hidden' }}>
+          <img src={post.image_url} alt="" style={{ width: '100%', maxHeight: 500, objectFit: 'contain', display: 'block' }} />
+        </div>
       )}
 
       {/* Stats */}
@@ -219,7 +221,7 @@ function CreatePost({ profile, onPost }) {
           />
           {imagePreview && (
             <div style={{ position: 'relative', marginTop: 10 }}>
-              <img src={imagePreview} alt="Preview" style={{ borderRadius: 8, width: '100%', maxHeight: 200, objectFit: 'cover', border: '1px solid var(--border)' }} />
+              <img src={imagePreview} alt="Preview" style={{ borderRadius: 8, width: '100%', maxHeight: 500, objectFit: 'contain', border: '1px solid var(--border)' }} />
               <button onClick={removeImage} style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', color: '#fff', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
             </div>
           )}
